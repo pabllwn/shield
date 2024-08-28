@@ -4,7 +4,6 @@ import discord
 from keep_alive import keep_alive
 
 keep_alive()
-
 intents = discord.Intents.all()
 intents.members = True
 
