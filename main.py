@@ -15,8 +15,8 @@ GUILD_ID = 1276712128505446490
 LOGS_CHANNEL_ID = 1278458636917670010
 PLAY_CHANNEL_ID = 1278455220300677194
 
-# List of allowed user IDs
-ALLOWED_USER_IDS = [826571466815569970, 758076857353502740, 220218739575095296]
+# List of allowed role IDs
+ALLOWED_ROLE_IDS = [1278359231262625802, 1278359492676943912]
 
 @bot.event
 async def on_ready():
@@ -28,7 +28,8 @@ async def shield(ctx, user_id: int):
     if ctx.guild.id != GUILD_ID:
         return
 
-    if ctx.author.id not in ALLOWED_USER_IDS:
+    # Check if the command author has one of the allowed roles
+    if not any(role.id in ALLOWED_ROLE_IDS for role in ctx.author.roles):
         await ctx.send("You do not have permission to use this command.")
         return
 
@@ -57,12 +58,12 @@ async def shield(ctx, user_id: int):
             await ctx.send(f"Role granted to {user.mention}! 🛡️ They now have access to the play channel <#{PLAY_CHANNEL_ID}>.")
             await logs_channel.send(f"{user.mention} has been given the role and access to the play channel <#{PLAY_CHANNEL_ID}>. 🛡️ The role will be removed in one hour.")
 
+            # Schedule role removal after exactly one hour
             await asyncio.sleep(3600)
-
             if role in user.roles:
                 await user.remove_roles(role)
-                await ctx.send(f"Role removed from {user.mention} after the time expired! ⏳")
-                await logs_channel.send(f"{user.mention} had the role removed after one hour. ⏳")
+                await ctx.send(f"Role removed from {user.mention} after one hour! ⏳")
+                await logs_channel.send(f"{user.mention} had the role removed exactly one hour after being assigned. ⏳")
     except Exception as e:
         await ctx.send(f"An error occurred: {e}")
         print(f"Error in shield command: {e}")
