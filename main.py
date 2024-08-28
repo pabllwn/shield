@@ -6,7 +6,7 @@ from keep_alive import keep_alive
 keep_alive()
 intents = discord.Intents.all()
 intents.members = True
-
+bot.remove_command('help')
 # Initialize bot
 bot = commands.Bot(command_prefix='&', intents=intents)
 
