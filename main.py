@@ -6,7 +6,6 @@ from keep_alive import keep_alive
 keep_alive()
 intents = discord.Intents.all()
 intents.members = True
-bot.remove_command('help')
 # Initialize bot
 bot = commands.Bot(command_prefix='&', intents=intents)
 
@@ -18,7 +17,15 @@ PLAY_CHANNEL_ID = 1278455220300677194
 
 # List of allowed user IDs
 ALLOWED_USER_IDS = [826571466815569970, 758076857353502740, 220218739575095296]
+@bot.event
+async def on_command(ctx):
+    if ctx.command.name == 'help':
+        return  # يتخطى أو يلغى الأمر `&help`
 
+@bot.command()
+async def help(ctx):
+    # لا تفعل أي شيء عند استدعاء `&help`
+    pass
 @bot.event
 async def on_ready():
     print(f'Bot is ready and logged in as {bot.user}')
