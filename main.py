@@ -24,7 +24,7 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(name="discord.gg/diamondsr"))
 
 @bot.command()
-async def shield(ctx, user_id: int):
+async def shield(ctx, user: discord.Member):
     if ctx.guild.id != GUILD_ID:
         return
 
@@ -35,7 +35,6 @@ async def shield(ctx, user_id: int):
 
     role = discord.utils.get(ctx.guild.roles, id=ROLE_ID)
     logs_channel = discord.utils.get(ctx.guild.text_channels, id=LOGS_CHANNEL_ID)
-    user = ctx.guild.get_member(user_id)
     
     if role is None:
         await ctx.send("Role not found. Please check the role ID.")
@@ -46,7 +45,7 @@ async def shield(ctx, user_id: int):
         return
 
     if user is None:
-        await ctx.send("User not found. Please check the user ID.")
+        await ctx.send("User not found. Please check the user ID or mention.")
         return
 
     try:
