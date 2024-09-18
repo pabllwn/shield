@@ -2,10 +2,12 @@ from discord.ext import commands, tasks
 import asyncio
 import discord
 from keep_alive import keep_alive
+import os
 
 keep_alive()
 intents = discord.Intents.all()
 intents.members = True
+
 # Initialize bot
 bot = commands.Bot(command_prefix='&', intents=intents)
 
@@ -35,11 +37,11 @@ async def shield(ctx, user: discord.Member):
 
     role = discord.utils.get(ctx.guild.roles, id=ROLE_ID)
     logs_channel = discord.utils.get(ctx.guild.text_channels, id=LOGS_CHANNEL_ID)
-    
+
     if role is None:
         await ctx.send("Role not found. Please check the role ID.")
         return
-    
+
     if logs_channel is None:
         await ctx.send("Logs channel not found. Please check the logs channel ID.")
         return
@@ -54,17 +56,21 @@ async def shield(ctx, user: discord.Member):
             await logs_channel.send(f"{user.mention} already had the role! Added another hour to their time. ⏳")
         else:
             await user.add_roles(role)
-            await ctx.send(f"Role granted to {user.mention}! 🛡️ They now have access to the play channel <#{PLAY_CHANNEL_ID}>.")
-            await logs_channel.send(f"{user.mention} has been given the role and access to the play channel <#{PLAY_CHANNEL_ID}>. 🛡️ The role will be removed in one hour.")
+            await ctx.send(f"Role granted to {user.mention}! 🛡️ They now have access to the play channel <#{PLAY_CHANNEL_ID}>.") 
+                        await logs_channel.send(f"{user.mention} has been given the role and access to the play channel <#{PLAY_CHANNEL_ID}>. 🛡️ The role will be removed in one hour.")
 
-            # Schedule role removal after exactly one hour
-            await asyncio.sleep(3600)
-            if role in user.roles:
-                await user.remove_roles(role)
-                await ctx.send(f"Role removed from {user.mention} after one hour! ⏳")
-                await logs_channel.send(f"{user.mention} had the role removed exactly one hour after being assigned. ⏳")
+        # Schedule role removal after exactly one hour
+        await asyncio.sleep(3600)
+        if role in user.roles:
+            await user.remove_roles(role)
+            await ctx.send(f"Role removed from {user.mention} after one hour! ⏳")
+            await logs_channel.send(f"{user.mention} had the role removed exactly one hour after being assigned. ⏳")
     except Exception as e:
         await ctx.send(f"An error occurred: {e}")
         print(f"Error in shield command: {e}")
 
-bot.run('MTI3ODEzMzc1OTUzOTAyMzkzMw.GQbBko.0r4t9KwKeYLVpxQo2yOoHuloB3KYlNbhxDBJdE')
+if __name__ == "__main__":
+    TOKEN = os.getenv("TOKEN")
+    if TOKEN is None:
+        raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
+    bot.run(TOKEN) 
