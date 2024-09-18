@@ -1,14 +1,15 @@
-from discord.ext import commands, tasks
+from discord.ext import commands
 import asyncio
 import discord
 from keep_alive import keep_alive
 import os
 
+# Start keep-alive function to maintain bot running
 keep_alive()
+
+# Set up intents and bot
 intents = discord.Intents.all()
 intents.members = True
-
-# Initialize bot
 bot = commands.Bot(command_prefix='&', intents=intents)
 
 # Replace with your actual values
@@ -56,8 +57,8 @@ async def shield(ctx, user: discord.Member):
             await logs_channel.send(f"{user.mention} already had the role! Added another hour to their time. ⏳")
         else:
             await user.add_roles(role)
-            await ctx.send(f"Role granted to {user.mention}! 🛡️ They now have access to the play channel <#{PLAY_CHANNEL_ID}>.") 
-                        await logs_channel.send(f"{user.mention} has been given the role and access to the play channel <#{PLAY_CHANNEL_ID}>. 🛡️ The role will be removed in one hour.")
+            await ctx.send(f"Role granted to {user.mention}! 🛡️ They now have access to the play channel <#{PLAY_CHANNEL_ID}>.")
+            await logs_channel.send(f"{user.mention} has been given the role and access to the play channel <#{PLAY_CHANNEL_ID}>. 🛡️ The role will be removed in one hour.")
 
         # Schedule role removal after exactly one hour
         await asyncio.sleep(3600)
@@ -70,7 +71,7 @@ async def shield(ctx, user: discord.Member):
         print(f"Error in shield command: {e}")
 
 if __name__ == "__main__":
-    TOKEN = os.getenv("TOKEN")
+    TOKEN = os.getenv("DISCORD_BOT_TOKEN")
     if TOKEN is None:
         raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
-    bot.run(TOKEN) 
+    bot.run(TOKEN)
