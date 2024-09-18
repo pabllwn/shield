@@ -67,4 +67,4 @@ async def shield(ctx, user: discord.Member):
         await ctx.send(f"An error occurred: {e}")
         print(f"Error in shield command: {e}")
 
-bot.run('MTI3ODEzMzc1OTUzOTAyMzkzMw.GKlPLI.1kc6PK9nAJdYbalTpTwoJ-jOriM4b1RZf6do6Y')
+bot.run('MTI3ODEzMzc1OTUzOTAyMzkzMw.GQbBko.0r4t9KwKeYLVpxQo2yOoHuloB3KYlNbhxDBJdE')
