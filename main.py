@@ -134,7 +134,7 @@ async def done(ctx, target: discord.Member):
 check_punishments.start()
 
 if __name__ == "__main__":
-    TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+    TOKEN = os.getenv("TOKEN")
     if TOKEN is None:
         raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
     bot.run(TOKEN)
