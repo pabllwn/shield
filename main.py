@@ -18,7 +18,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Configuration
 ROLE_ID = 1278431024556281947
 GUILD_ID = 1276712128505446490
-LOGS_CHANNEL_ID = 1289727948110303253  # Updated to your logs channel ID
+LOGS_CHANNEL_ID = 1278458636917670010
 PLAY_CHANNEL_ID = 1278455220300677194
 LOG_CHANNEL_NAME = "10-hour-outcast-casino"
 DETECTED_ROLE_NAME = "SCRIPT DETECTED ✅"
@@ -84,7 +84,7 @@ async def rob(ctx, target: discord.Member):
 
             # Notify the user and log in the special channel
             await target.send(f"You have been isolated for 10 hours due to suspected script usage.")
-            log_channel = discord.utils.get(ctx.guild.channels, id=LOGS_CHANNEL_ID)
+            log_channel = discord.utils.get(ctx.guild.channels, name=LOG_CHANNEL_NAME)
             if log_channel:
                 await log_channel.send(f"{target.display_name} has been detected using a script.")
         else:
@@ -188,4 +188,6 @@ if __name__ == "__main__":
     TOKEN = os.getenv("TOKEN")
     if TOKEN is None:
         raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
-    bot.run(TOKEN)
+    
+    # Use asyncio.run to start the bot
+    asyncio.run(bot.start(TOKEN))
