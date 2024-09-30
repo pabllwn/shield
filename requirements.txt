@@ -2,4 +2,3 @@ discord-py
 requests
 flask
 gunicorn
-uvicorn
