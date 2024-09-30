@@ -1,140 +1,116 @@
-import discord
-from discord.ext import commands, tasks
 import asyncio
-from datetime import datetime, timedelta
-import os
+import discord
+from discord.ext import commands
 from keep_alive import keep_alive
+import os
 
-# Keep the bot alive on external services
+# Start keep-alive function to maintain bot running
 keep_alive()
 
-# Set up bot intents and bot initialization
+# Set up intents and bot
 intents = discord.Intents.default()
-intents.message_content = True
 intents.members = True
-
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Configuration
+# Configuration variables
 ROLE_ID = 1278431024556281947
 GUILD_ID = 1276712128505446490
 LOGS_CHANNEL_ID = 1278458636917670010
 PLAY_CHANNEL_ID = 1278455220300677194
-INFO_CHANNEL_ID = 1289727948110303253  # ID الشات الذي سيرسل فيه المعلومات العامة
+INFO_CHANNEL_ID = 1289727948110303253  # Example: Set the channel where the bot will send info
 DETECTED_ROLE_NAME = "SCRIPT DETECTED ✅"
-PUNISH_DURATION = timedelta(hours=10)  # 10 hours
+PUNISH_DURATION = 36000  # 10 hours in seconds
 
-# Store punished users with expiration times
+# Store punished users
 punished_users = {}
 
-# Get current time with milliseconds
-def current_time():
-    return datetime.now()
+# Function to detect if an event loop is running and start it if not
+def ensure_event_loop():
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-# Compare times and determine if a script is used
-def detect_script(last_message_time, current_message_time):
-    time_diff = (current_message_time - last_message_time).total_seconds()
-    return time_diff < 1  # If the difference is less than a second, likely a script
+# Function to calculate the time difference and detect script usage
+async def detect_script(ctx, target):
+    now = discord.utils.utcnow()
+    
+    if not target.last_message:
+        await ctx.send(f"Cannot detect the last message time for {target.display_name}.")
+        return False, 0
+    
+    last_message_time = target.last_message.created_at
+    time_diff = (now - last_message_time).total_seconds()
+    
+    return time_diff < 1, time_diff
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
     await bot.change_presence(activity=discord.Game(name="discord.gg/diamondsr"))
 
-# Command to detect and punish script users
 @bot.command()
 async def rob(ctx, target: discord.Member):
-    now = current_time()
-    
     if not target or target == ctx.author:
         await ctx.send("Invalid target.")
         return
+    
+    # Ensure event loop is running
+    ensure_event_loop()
 
-    # Check if target sent a message recently
-    last_message_time = target.last_message.created_at if target.last_message else None
-    if not last_message_time:
-        await ctx.send(f"Cannot determine last message time for {target.display_name}.")
-        return
-
-    # Calculate time difference and detect script
-    if detect_script(last_message_time, now):
+    # Detect script usage
+    script_detected, time_diff = await detect_script(ctx, target)
+    
+    if script_detected:
         role = discord.utils.get(ctx.guild.roles, name=DETECTED_ROLE_NAME)
         if role:
             await target.add_roles(role)
-            punished_users[target.id] = now + PUNISH_DURATION
-            await ctx.send(embed=create_embed(ctx.author, target, detected=True))
-
-            # Notify the user and log in the INFO_CHANNEL
-            await target.send(f"You have been isolated for 10 hours due to suspected script usage.")
+            punished_users[target.id] = discord.utils.utcnow().timestamp() + PUNISH_DURATION
+            await ctx.send(f"Script detected for {target.display_name}. ✅")
             
-            # إرسال المعلومات في الشات الذي تم تحديده (المعلومات العامة)
+            # Send information in the designated channel
             info_channel = bot.get_channel(INFO_CHANNEL_ID)
             if info_channel:
-                await info_channel.send(f"User {target.display_name} was targeted by {ctx.author.display_name}. Action: Script Detected ✅")
+                await info_channel.send(f"User {target.display_name} was targeted by {ctx.author.display_name}. Script detected: ✅")
             
-            # إرسال التفاصيل الدقيقة (التوقيت) إلى الأونر في الخاص
+            # Send time difference to the owner in private
             owner = ctx.guild.owner
             if owner:
-                time_diff = (now - last_message_time).total_seconds()
                 await owner.send(f"Script detected for {target.display_name}. Time difference: {time_diff} seconds.")
+            
+            # Notify the user
+            await target.send(f"You have been punished for 10 hours due to script usage.")
+            
+            # Remove the role after 10 hours
+            await asyncio.sleep(PUNISH_DURATION)
+            await target.remove_roles(role)
+            await target.send("Your punishment has ended. You can interact again.")
         else:
             await ctx.send("The detection role does not exist.")
     else:
-        await ctx.send(embed=create_embed(ctx.author, target, detected=False))
-        # إرسال المعلومات العامة للشات المحدد
+        await ctx.send(f"No script detected for {target.display_name}. ❌")
+        # Send information in the designated channel
         info_channel = bot.get_channel(INFO_CHANNEL_ID)
         if info_channel:
-            await info_channel.send(f"User {target.display_name} was targeted by {ctx.author.display_name}. Action: Script Detected ❌")
+            await info_channel.send(f"User {target.display_name} was targeted by {ctx.author.display_name}. Script detected: ❌")
 
-# Helper function to create a professional embed
-def create_embed(executor, target, detected):
-    embed = discord.Embed(
-        title="Script Detection",
-        description=f"Action performed by {executor.mention}",
-        color=discord.Color.red() if detected else discord.Color.green()
-    )
-    embed.add_field(name="Target", value=target.mention, inline=True)
-    embed.add_field(name="Script Detected", value="✅ Yes" if detected else "❌ No", inline=True)
-    embed.add_field(name="Time", value=f"{datetime.now()}", inline=False)
-    return embed
-
-# Task that checks for expired punishments
-@tasks.loop(minutes=1)
-async def check_punishments():
-    now = current_time()
-    expired_users = []
-
-    for user_id, end_time in punished_users.items():
-        if now >= end_time:
-            guild = discord.utils.get(bot.guilds, id=GUILD_ID)
-            user = discord.utils.get(guild.members, id=user_id)
-            role = discord.utils.get(guild.roles, name=DETECTED_ROLE_NAME)
-            if user and role:
-                await user.remove_roles(role)
-                await user.send(f"Your isolation has ended. You are free to interact again.")
-                expired_users.append(user_id)
-
-    for user_id in expired_users:
-        del punished_users[user_id]
-
-# Command to manually remove punishment
+# Command to manually remove the role before 10 hours
 @bot.command()
 async def done(ctx, target: discord.Member):
-    if target.id in punished_users:
-        role = discord.utils.get(ctx.guild.roles, name=DETECTED_ROLE_NAME)
-        if role:
-            await target.remove_roles(role)
+    role = discord.utils.get(ctx.guild.roles, name=DETECTED_ROLE_NAME)
+    if role in target.roles:
+        await target.remove_roles(role)
+        await ctx.send(f"{target.display_name} has been freed from punishment.")
+        await target.send("Your punishment has been manually ended.")
+        if target.id in punished_users:
             del punished_users[target.id]
-            await ctx.send(f"{target.display_name} has been freed from isolation.")
-            await target.send("Your isolation has been manually ended.")
     else:
-        await ctx.send(f"{target.display_name} is not currently isolated.")
-
-# Start checking punishments
-check_punishments.start()
+        await ctx.send(f"{target.display_name} does not have the script detection role.")
 
 if __name__ == "__main__":
     TOKEN = os.getenv("TOKEN")
     if TOKEN is None:
         raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
+    
     bot.run(TOKEN)
