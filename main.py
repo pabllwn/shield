@@ -4,6 +4,8 @@ from datetime import datetime
 import time
 import os
 from dotenv import load_dotenv
+from threading import Thread
+from flask import Flask
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,6 +24,20 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 role_name = 'SCRIPT DETECTED ✅'
 channel_name = '10 hour outcast casino'
 timeout_duration = 10 * 60 * 60  # 10 ساعات بالثواني
+
+# Create a simple Flask app for keeping the bot alive
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# Start Flask in a separate thread
+flask_thread = Thread(target=run_flask)
+flask_thread.start()
 
 # Create embed function
 def create_embed(executor, target, response, time_diff):
