@@ -2,6 +2,14 @@ import discord
 from discord.ext import commands, tasks
 from datetime import datetime
 import time
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get the Discord bot token from environment variable
+TOKEN = os.getenv('TOKEN')
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -104,4 +112,4 @@ async def done(ctx, member: discord.Member):
         await ctx.send(f"{member.mention} does not have the {role_name} role.")
 
 # Run the bot
-bot.run('MTI3ODEzMzc1OTUzOTAyMzkzMw.GQbBko.0r4t9KwKeYLVpxQo2yOoHuloB3KYlNbhxDBJdE')
+bot.run(TOKEN)
