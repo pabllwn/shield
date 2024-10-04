@@ -103,10 +103,5 @@ async def done(ctx, member: discord.Member):
     else:
         await ctx.send(f"{member.mention} does not have the {role_name} role.")
 
-if __name__ == "__main__":
-    TOKEN = os.getenv("TOKEN")
-    if TOKEN is None:
-        raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
-    
-    # Use asyncio.run to start the bot
-    asyncio.run(bot.start(TOKEN))
+# Run the bot
+bot.run('MTI3ODEzMzc1OTUzOTAyMzkzMw.GQbBko.0r4t9KwKeYLVpxQo2yOoHuloB3KYlNbhxDBJdE')
