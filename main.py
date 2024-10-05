@@ -206,8 +206,7 @@ def main():
     flask_thread.start()
 
     # Run Discord bot
-    loop = asyncio.get_event_loop()  # Ensure we have a loop
-    loop.run_until_complete(run_discord_bot())  # Correctly running the bot
+    asyncio.run(run_discord_bot())  # Correctly running the bot
 
 if __name__ == "__main__":
     main()
