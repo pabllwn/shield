@@ -31,7 +31,7 @@ PLAY_CHANNEL_ID = 1278455220300677194
 LOG_CHANNEL_NAME = "10-hour-outcast-casino"
 DETECTED_ROLE_NAME = "SCRIPT DETECTED ✅"
 PUNISH_DURATION = timedelta(hours=10)  # 10 hours
-ALLOWED_ROLE_IDS = [1278359492676943912]
+ALLOWED_ROLE_IDS = [1278359492676943912, ]
 
 # Store punished users with expiration times
 punished_users = {}
@@ -206,7 +206,8 @@ def main():
     flask_thread.start()
 
     # Run Discord bot
-    asyncio.run(run_discord_bot())
+    loop = asyncio.get_event_loop()  # Ensure we have a loop
+    loop.run_until_complete(run_discord_bot())  # Correctly running the bot
 
 if __name__ == "__main__":
     main()
