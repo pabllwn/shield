@@ -3,12 +3,20 @@ from discord.ext import commands, tasks
 import asyncio
 from datetime import datetime, timedelta
 import os
-from keep_alive import keep_alive
+from flask import Flask
+from threading import Thread
 
-# Keep the bot alive on external services
-keep_alive()
+# Flask setup
+app = Flask('')
 
-# Set up bot intents and bot initialization
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080)
+
+# Discord bot setup
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
@@ -23,7 +31,7 @@ PLAY_CHANNEL_ID = 1278455220300677194
 LOG_CHANNEL_NAME = "10-hour-outcast-casino"
 DETECTED_ROLE_NAME = "SCRIPT DETECTED ✅"
 PUNISH_DURATION = timedelta(hours=10)  # 10 hours
-ALLOWED_ROLE_IDS = [1278359492676943912, 1280007060930428969]
+ALLOWED_ROLE_IDS = [1278359492676943912]
 
 # Store punished users with expiration times
 punished_users = {}
@@ -184,10 +192,21 @@ async def shield(ctx, user: discord.Member):
 # Start checking punishments
 check_punishments.start()
 
-if __name__ == "__main__":
-    TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+# Function to run the bot
+async def run_discord_bot():
+    TOKEN = os.getenv("TOKEN")
     if TOKEN is None:
         raise ValueError("No token found! Please set the DISCORD_BOT_TOKEN environment variable.")
-    
-    # Use asyncio.run to start the bot
-    asyncio.run(bot.start(TOKEN))
+    await bot.start(TOKEN)
+
+# Main function to run both Flask and Discord bot
+def main():
+    # Start Flask in a separate thread
+    flask_thread = Thread(target=run_flask)
+    flask_thread.start()
+
+    # Run Discord bot
+    asyncio.run(run_discord_bot())
+
+if __name__ == "__main__":
+    main()
